@@ -164,6 +164,16 @@ const invite=InviteCodec.clean({"title": "Cars · Demo de enlace corto", "name":
 invite.photo=document.querySelector("img.racecar").src;
 if(location.hash && !invite){set('#noInvite .intro','Este enlace está incompleto o contiene datos inválidos. Pide que te envíen nuevamente la invitación completa.');}
 window.addEventListener('hashchange',()=>location.reload());
+
+function invitationExpired(invite){return Boolean(invite.date)&&Date.now()>=new Date(invite.date+'T00:00:00-05:00').getTime()+30*86400000;}
+if(invite&&invitationExpired(invite)){
+  $('#invitePage').classList.add('hidden');$('#noInvite').classList.remove('hidden');
+  set('#noInvite .hero-title','INVITACIÓN FINALIZADA');
+  set('#noInvite .intro','Esta invitación terminó su vigencia: han pasado 30 días desde la fecha del cumpleaños.');
+  set('#noInvite .hint','Gracias por ser parte de la celebración.');
+  return;
+}
+
 if(invite){Object.assign(EVENT,invite);$('#noInvite').classList.add('hidden');$('#invitePage').classList.remove('hidden');init();setInterval(updateCountdown,60000);}
 })();
 </script>
