@@ -1,0 +1,50 @@
+name: Publicar y retirar invitaciones vencidas
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    # 00:17 de Perú. GitHub ejecuta el horario en UTC.
+    - cron: '17 5 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Descargar archivos públicos
+        uses: actions/checkout@v6
+      - name: Retirar vencidas y preparar la web
+        run: python3 caducar-invitaciones.py
+      - name: Guardar la retirada en el repositorio
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add --update -- '*.html'
+          if ! git diff --cached --quiet; then
+            git commit -m 'Retirar invitaciones: 30 días desde el cumpleaños'
+            git push
+          fi
+      - name: Preparar GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Subir únicamente la web preparada
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+          retention-days: 1
+      - name: Publicar la web actualizada
+        id: deployment
+        uses: actions/deploy-pages@v4
