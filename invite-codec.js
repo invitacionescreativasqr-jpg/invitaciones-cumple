@@ -1,4 +1,4 @@
-/* Cars · formato compatible con los enlaces originales: JSON UTF-8 en base64url. */
+/* Cars · z1: lista UTF-8 comprimida con DEFLATE en base64url; acepta también JSON original. */
 (function (global) {
   'use strict';
   const fields = ['title','name','age','date','time','venue','city','mapUrl','whatsapp','message','dressCode'];
@@ -27,20 +27,53 @@
     if (new TextEncoder().encode(JSON.stringify(data)).length > 16000) throw Error('La invitación es demasiado larga. Acorta el mensaje o el enlace del mapa.');
     return data;
   }
-  function encode(value) {
-    const bytes = new TextEncoder().encode(JSON.stringify(clean(value)));
-    let binary = ''; for (const byte of bytes) binary += String.fromCharCode(byte);
+  function toBase64(bytes) {
+    let binary=''; for(const byte of bytes) binary+=String.fromCharCode(byte);
     return btoa(binary).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
   }
-  function decode(hash) {
-    if (typeof hash !== 'string' || hash.length > 24000) return null;
-    const match = hash.match(/^#invite=([A-Za-z0-9_-]+)$/); if (!match) return null;
+  async function readBounded(stream) {
+    const reader=stream.getReader(), chunks=[]; let size=0;
     try {
-      let b64 = match[1].replace(/-/g,'+').replace(/_/g,'/');
-      b64 += '='.repeat((4-b64.length%4)%4);
-      const bytes = Uint8Array.from(atob(b64), c=>c.charCodeAt(0));
-      return clean(JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes)));
-    } catch { return null; }
+      for(;;){const {done,value}=await reader.read();if(done)break;
+        size+=value.length;if(size>16000){await reader.cancel();throw Error('Datos demasiado largos.');}chunks.push(value);}
+    } finally {reader.releaseLock();}
+    const result=new Uint8Array(size);let offset=0;
+    for(const chunk of chunks){result.set(chunk,offset);offset+=chunk.length;}return result;
+  }
+  function encode(value){return toBase64(new TextEncoder().encode(JSON.stringify(clean(value))));}
+  function decode(hash){
+    if(typeof hash!=='string'||hash.length>24000)return null;
+    const m=hash.match(/^#invite=([A-Za-z0-9_-]+)$/);if(!m)return null;
+    try{let b64=m[1].replace(/-/g,'+').replace(/_/g,'/');b64+='='.repeat((4-b64.length%4)%4);return clean(JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(Uint8Array.from(atob(b64),c=>c.charCodeAt(0)))));}catch{return null;}
+  }
+  async function encodeCompact(value) {
+    const data=clean(value), utf8=new TextEncoder();
+    const legacy=toBase64(utf8.encode(JSON.stringify(data)));
+    // Posiciones fijas evitan repetir las claves en cada enlace; z1 fija el formato.
+    if(typeof CompressionStream!=='function')return legacy;
+    const packed=utf8.encode(JSON.stringify(fields.map(key=>data[key])));
+    try{
+      const stream=new Blob([packed]).stream().pipeThrough(new CompressionStream('deflate'));
+      const compressed='z1.'+toBase64(await readBounded(stream));
+      return compressed.length<legacy.length?compressed:legacy;
+    }catch{return legacy;}
+  }
+  async function decodeAny(hash) {
+    if(typeof hash!=='string'||hash.length>24000)return null;
+    const match=hash.match(/^#invite=(z1\.)?([A-Za-z0-9_-]+)$/);if(!match)return null;
+    try {
+      let b64=match[2].replace(/-/g,'+').replace(/_/g,'/');
+      b64+='='.repeat((4-b64.length%4)%4);
+      let bytes=Uint8Array.from(atob(b64),c=>c.charCodeAt(0));
+      if(match[1]){
+        if(typeof DecompressionStream!=='function')return null;
+        bytes=await readBounded(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate')));
+      }
+      const value=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));
+      if(!match[1])return clean(value);
+      if(!Array.isArray(value)||value.length!==fields.length)return null;
+      return clean(Object.fromEntries(fields.map((key,i)=>[key,value[i]])));
+    } catch {return null;}
   }
   function baseUrl(input, allowLocal=false) {
     const url = new URL(input);
@@ -49,5 +82,5 @@
     if (!url.pathname.endsWith('/')) url.pathname += '/';
     return url.href;
   }
-  global.InviteCodec = Object.freeze({clean,encode,decode,baseUrl});
+  global.InviteCodec = Object.freeze({clean,encode,decode,encodeCompact,decodeAny,baseUrl});
 })(globalThis);
