@@ -33,6 +33,11 @@
     img.racecar{display:block;height:auto;max-height:245px;object-fit:contain;position:relative;z-index:1}
     .age-badge{z-index:2}
     @media(max-width:520px){img.racecar{max-height:200px}}
+  
+    .pilot-photo{width:100%;height:100%;object-fit:cover;border-radius:inherit}
+    .photo-controls{border:1px solid #ffffff25;padding:14px;border-radius:14px}
+    .photo-thumb{width:88px;height:88px;object-fit:cover;border-radius:16px;margin:10px 0}
+    .photo-help{font-size:.76rem;color:#d2c2ba;line-height:1.6}
   </style>
 </head>
 <body>
@@ -70,7 +75,7 @@
 
       <section id="mission2" class="view hidden">
         <div class="mission-label">Misión 2 · Equipo</div><h2>Conoce al piloto del día</h2><p class="sub">El protagonista de esta carrera merece una celebración a lo grande.</p>
-        <div class="panel team-card"><div class="avatar">🏎️</div><div><span class="pilot-number" id="pilotNumber">PILOTO #06</span><h3 id="teamName">Tu piloto</h3><p id="teamCopy">Está listo para celebrar su cumpleaños con su equipo favorito: ¡ustedes!</p></div></div>
+        <div class="panel team-card"><div class="avatar" id="pilotAvatar">🏎️</div><div><span class="pilot-number" id="pilotNumber">PILOTO #06</span><h3 id="teamName">Tu piloto</h3><p id="teamCopy">Está listo para celebrar su cumpleaños con su equipo favorito: ¡ustedes!</p></div></div>
         <div class="ticket"><div class="ticket-head">🎉 ATENCIÓN, CORREDORES</div><p id="dressCopy">Prepárate para jugar, reír y celebrar en una aventura inolvidable.</p></div>
         <div class="button-row"><button class="quiet back">← Volver</button><button class="secondary next">Siguiente misión →</button></div>
       </section>
@@ -115,7 +120,7 @@
     </section>
     <p class="footer-note">Una invitación para compartir la alegría del gran día 🏁</p>
 </main>
-<script src="./invite-codec.js?v=2"></script>
+<script src="./invite-codec.js?v=3"></script>
 <script>
 (async()=>{
 const EVENT={name:'Tu piloto',age:'6',date:'',time:'',venue:'Lugar por confirmar',city:'Ciudad por confirmar',mapUrl:'',whatsapp:'',message:'¡Te espero para celebrar conmigo!',dressCode:'Prepárate para jugar, reír y celebrar en una aventura inolvidable.'};
@@ -132,7 +137,8 @@ $('#trafficLight').addEventListener('click',()=>{let n=Math.min(3,Number($('#tra
 const values={date:()=>EVENT.date?new Date(`${EVENT.date}T12:00:00`).toLocaleDateString('es-PE',{day:'numeric',month:'short'}):'Por confirmar',time:()=>EVENT.time||'Por confirmar',venue:()=>EVENT.venue||'Por confirmar',age:()=>`${EVENT.age||'6'} años`};
 $$('.tile').forEach(tile=>tile.addEventListener('click',()=>{tile.classList.add('open');$('.value',tile).textContent=values[tile.dataset.key]();if($$('.tile.open').length===4){set('#tileStatus','✅ Pit stop completo. ¡Todo listo para continuar!');$('#next3').classList.remove('hidden');}}));
 function updateCountdown(){const d=EVENT.date?new Date(`${EVENT.date}T${EVENT.time||'12:00'}:00-05:00`):null;if(!d||Number.isNaN(d.getTime())){set('#days','--');set('#hours','--');set('#minutes','--');return;}const t=Math.max(0,d-new Date());set('#days',Math.floor(t/86400000));set('#hours',Math.floor(t%86400000/3600000));set('#minutes',Math.floor(t%3600000/60000));}
-function init(){const name=EVENT.name||'Tu piloto',age=EVENT.age||'6';set('#coverName',name.toUpperCase());set('#coverSubtitle',`cumple ${age}`);set('#ageBadge',age);set('#pilotNumber',`PILOTO #${String(age).padStart(2,'0')}`);set('#teamName',name);set('#coverIntro',`Abróchate el cinturón: estás invitado a celebrar los ${age} años de ${name} con juegos, risas y mucha velocidad.`);set('#dressCopy',EVENT.dressCode||'Prepárate para jugar, reír y celebrar en una aventura inolvidable.');set('#venueName',EVENT.venue||'Lugar por confirmar');set('#cityName',EVENT.city||'Ciudad por confirmar');set('#ticketText',EVENT.date?new Date(`${EVENT.date}T12:00:00`).toLocaleDateString('es-PE',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+(EVENT.time?` · ${EVENT.time}`:''):'Fecha y hora por confirmar.');set('#extraText',EVENT.message||'¡Te espero para celebrar conmigo!');const map=$('#mapLink');map.href=EVENT.mapUrl||'#';map.setAttribute('aria-disabled',EVENT.mapUrl?'false':'true');map.onclick=e=>{if(!EVENT.mapUrl){e.preventDefault();set('#mapStatus','La persona que te invitó aún no agregó la ruta.');}};updateCountdown();}
+function renderPilotPhoto(){const avatar=$('#pilotAvatar');avatar.replaceChildren();if(EVENT.photo){const img=document.createElement('img');img.className='pilot-photo';img.alt='Foto de '+(EVENT.name||'nuestro piloto');img.src=EVENT.photo;avatar.append(img);}else{avatar.textContent='🏎️';}}
+function init(){renderPilotPhoto();const name=EVENT.name||'Tu piloto',age=EVENT.age||'6';set('#coverName',name.toUpperCase());set('#coverSubtitle',`cumple ${age}`);set('#ageBadge',age);set('#pilotNumber',`PILOTO #${String(age).padStart(2,'0')}`);set('#teamName',name);set('#coverIntro',`Abróchate el cinturón: estás invitado a celebrar los ${age} años de ${name} con juegos, risas y mucha velocidad.`);set('#dressCopy',EVENT.dressCode||'Prepárate para jugar, reír y celebrar en una aventura inolvidable.');set('#venueName',EVENT.venue||'Lugar por confirmar');set('#cityName',EVENT.city||'Ciudad por confirmar');set('#ticketText',EVENT.date?new Date(`${EVENT.date}T12:00:00`).toLocaleDateString('es-PE',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+(EVENT.time?` · ${EVENT.time}`:''):'Fecha y hora por confirmar.');set('#extraText',EVENT.message||'¡Te espero para celebrar conmigo!');const map=$('#mapLink');map.href=EVENT.mapUrl||'#';map.setAttribute('aria-disabled',EVENT.mapUrl?'false':'true');map.onclick=e=>{if(!EVENT.mapUrl){e.preventDefault();set('#mapStatus','La persona que te invitó aún no agregó la ruta.');}};updateCountdown();}
 $('#rsvp').addEventListener('click',()=>{if(EVENT.whatsapp){const msg=encodeURIComponent(`¡Hola! Confirmo mi asistencia al cumpleaños de ${EVENT.name}.`);window.open(`https://wa.me/${EVENT.whatsapp}?text=${msg}`,'_blank','noopener');set('#rsvpStatus','WhatsApp se abrió para enviar tu confirmación.');}else{set('#rsvpStatus','Consulta a la persona que te invitó para confirmar tu asistencia.');}});
 $('#restart').addEventListener('click',()=>show('cover'));
 const invite=await decodeShared();

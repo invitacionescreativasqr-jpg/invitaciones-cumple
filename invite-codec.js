@@ -10,6 +10,10 @@
       data[key] = (value[key] || '').trim();
       if (data[key].length > (key === 'message' || key === 'mapUrl' ? 2000 : 200)) throw Error('Campo demasiado largo: '+key);
     }
+    if(value.photo){
+      if(typeof value.photo!=='string'||value.photo.length>6000||!/^data:image\/jpeg;base64,\/9j\/[A-Za-z0-9+/]*={0,2}$/.test(value.photo))throw Error('La foto debe ser una miniatura JPEG válida (máximo 6.000 caracteres).');
+      data.photo=value.photo;
+    }
     if (!data.name) throw Error('Escribe el nombre del cumpleañero.');
     if (data.age && !/^\d{1,3}$/.test(data.age)) throw Error('La edad debe ser un número de hasta tres cifras.');
     if (data.date) {
@@ -51,16 +55,17 @@
     const legacy=toBase64(utf8.encode(JSON.stringify(data)));
     // Posiciones fijas evitan repetir las claves en cada enlace; z1 fija el formato.
     if(typeof CompressionStream!=='function')return legacy;
-    const packed=utf8.encode(JSON.stringify(fields.map(key=>data[key])));
+    const values=fields.map(key=>data[key]);if(data.photo)values.push(data.photo);
+    const packed=utf8.encode(JSON.stringify(values));
     try{
       const stream=new Blob([packed]).stream().pipeThrough(new CompressionStream('deflate'));
-      const compressed='z1.'+toBase64(await readBounded(stream));
+      const compressed=(data.photo?'z2.':'z1.')+toBase64(await readBounded(stream));
       return compressed.length<legacy.length?compressed:legacy;
     }catch{return legacy;}
   }
   async function decodeAny(hash) {
     if(typeof hash!=='string'||hash.length>24000)return null;
-    const match=hash.match(/^#invite=(z1\.)?([A-Za-z0-9_-]+)$/);if(!match)return null;
+    const match=hash.match(/^#invite=(z[12]\.)?([A-Za-z0-9_-]+)$/);if(!match)return null;
     try {
       let b64=match[2].replace(/-/g,'+').replace(/_/g,'/');
       b64+='='.repeat((4-b64.length%4)%4);
@@ -71,8 +76,11 @@
       }
       const value=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));
       if(!match[1])return clean(value);
-      if(!Array.isArray(value)||value.length!==fields.length)return null;
-      return clean(Object.fromEntries(fields.map((key,i)=>[key,value[i]])));
+      const withPhoto=match[1]==='z2.';
+      if(!Array.isArray(value)||value.length!==fields.length+(withPhoto?1:0))return null;
+      const data=Object.fromEntries(fields.map((key,i)=>[key,value[i]]));
+      if(withPhoto)data.photo=value[fields.length];
+      return clean(data);
     } catch {return null;}
   }
   function baseUrl(input, allowLocal=false) {
