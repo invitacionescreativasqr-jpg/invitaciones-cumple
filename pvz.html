@@ -86,7 +86,6 @@ h2{font-size:clamp(2.2rem,7vw,3.5rem);line-height:1.02;color:#365d21}.name-kicke
 /* Personajes PvZ: conservar GIF animado y retirar visualmente su fondo claro. */
 img.pea-hero,img.zombie-hero,img.pvz-pea,img.pvz-zombie,#missionRacecar,#pilotAvatar>img:not(.pilot-photo){filter:url(#pvz-cutout)!important;mix-blend-mode:normal!important;animation:none!important}
 img.pea-hero,img.pvz-pea,#missionRacecar,#pilotAvatar>img:not(.pilot-photo){filter:url(#pvz-plant-cutout)!important}
-img.zombie-hero,.garden-board img.pvz-zombie{filter:url(#pvz-zombie-clean)!important}
 .car-stage{height:245px;gap:36px;align-items:flex-end;padding:18px 24px}
 img.pea-hero{width:126px!important;height:135px!important;max-height:none!important;object-fit:contain;flex:none}
 img.zombie-hero{width:150px!important;height:205px!important;object-fit:cover;object-position:center;flex:none}
@@ -129,14 +128,6 @@ img.zombie-hero{width:150px!important;height:205px!important;object-fit:cover;ob
 <feColorMatrix in="SourceGraphic" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  -.3333 -.3333 -.3333 0 1" result="plantTone"/>
 <feComponentTransfer in="plantTone" result="plantKey"><feFuncA type="discrete" tableValues="0 0 1 1 1 1 1 1"/></feComponentTransfer>
 <feComposite in="SourceGraphic" in2="plantKey" operator="in"/>
-</filter><filter id="pvz-zombie-clean" x="-5%" y="-5%" width="110%" height="110%" color-interpolation-filters="sRGB">
-<feColorMatrix in="SourceGraphic" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  -.3333 -.3333 -.3333 0 1" result="tone"/>
-<feComponentTransfer in="tone" result="key"><feFuncA type="discrete" tableValues="0 0 1 1 1 1 1 1"/></feComponentTransfer>
-<feMorphology in="key" operator="dilate" radius="2" result="expanded"/>
-<feMorphology in="expanded" operator="erode" radius="2" result="silhouette"/>
-<feComposite in="silhouette" in2="SourceAlpha" operator="in" x="0%" y="0%" width="100%" height="62%" result="faceMask"/>
-<feComposite in="key" in2="faceMask" operator="over" result="bodyMask"/>
-<feMorphology in="bodyMask" operator="erode" radius="0.5" result="trimmedMask"/><feComposite in="SourceGraphic" in2="trimmedMask" operator="in"/>
 </filter></defs></svg>
 <main id="noInvite" class="page">
   <div class="topline">Invitación de cumpleaños</div>
