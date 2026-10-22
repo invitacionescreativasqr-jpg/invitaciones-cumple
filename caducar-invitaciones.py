@@ -16,7 +16,7 @@ def prepare(root, today=None):
         raise ValueError('Registro de invitaciones inválido.')
     # Exportaciones autónomas: su fecha está marcada en el HTML, sin editar el registro.
     known={item.get('file') for item in manifest['invitations']}
-    for exported in list(root.glob('cars-*.html'))+list(root.glob('pvz-*.html')):
+    for exported in list(root.glob('cars-*.html'))+list(root.glob('pvz-*.html'))+list(root.glob('dbz-*.html')):
         if exported.name in known or exported.is_symlink() or not exported.is_file():continue
         header=exported.read_text(encoding='utf-8').split('</head>',1)[0]
         marker=re.search(r'<meta name="invitation-event-date" content="(\d{4}-\d{2}-\d{2})">',header)
@@ -45,7 +45,7 @@ def prepare(root, today=None):
     for previous in output.iterdir():
         if previous.is_symlink() or not previous.is_file():raise ValueError('Contenido inesperado en _site.')
         previous.unlink()
-    public_files=BASE_FILES+(['pvz.html'] if (root/'pvz.html').is_file() else [])
+    public_files=BASE_FILES+[name for name in ['pvz.html','dbz.html'] if (root/name).is_file()]
     for name in public_files:
         source=root/name
         if not source.is_file() or source.is_symlink():raise ValueError('Falta archivo compartido: '+name)
