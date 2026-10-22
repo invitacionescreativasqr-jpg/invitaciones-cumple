@@ -54,6 +54,13 @@
     .race-smoke{position:absolute;left:-12px;bottom:5px;font-size:24px;opacity:.75}
     .race-finish{position:absolute;right:0;bottom:10px;font-size:28px}
     @media(prefers-reduced-motion:reduce){.race-runner{transition:none}}
+    
+    /* Semáforo estable */
+    .light-area{display:grid;grid-template-columns:86px 128px;gap:clamp(12px,4vw,24px);justify-content:center;align-items:center}
+    .light{box-sizing:border-box;width:86px;min-width:86px;height:198px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;transform:none;transition:none}
+    .light .bulb{flex:0 0 48px;width:48px;height:48px;margin:0}
+    .light-instruction{width:128px;min-width:0;line-height:1.5}
+    #next4.locked{visibility:hidden;pointer-events:none}
     </style>
 </head>
 <body>
@@ -113,7 +120,7 @@
       <section id="mission4" class="view hidden">
         <div class="mission-label">Misión 4 · Semáforo</div><h2>¡Pon la pista en verde!</h2><p class="sub">Toca el semáforo hasta que dé luz verde para salir rumbo a la fiesta.</p>
         <div class="light-area"><button class="light" id="trafficLight" aria-label="Cambiar semáforo"><div class="bulb red on"></div><div class="bulb yellow"></div><div class="bulb green"></div></button><div class="light-instruction" id="lightText">🔴 Detente</div></div>
-        <div class="button-row"><button class="quiet back">← Volver</button><button class="secondary next hidden" id="next4">Siguiente misión →</button></div>
+        <div class="button-row"><button class="quiet back">← Volver</button><button class="secondary next locked" id="next4">Siguiente misión →</button></div>
       </section>
 
       <section id="mission5" class="view hidden">
@@ -158,9 +165,9 @@ $$('.back').forEach(btn=>btn.addEventListener('click',()=>{const current=steps.f
 $('#startBtn').addEventListener('click',()=>{resetRace();show('mission1');});
 function resetRace(){speed=0;$('#speed').style.width='0%';$('#raceRunner').style.left='0%';set('#speedCopy','Velocidad: 0% · ¡Vamos, piloto!');set('#speedStatus','');$('#next1').classList.add('hidden');}
 let speed=0;$('#accelerate').addEventListener('click',()=>{speed=Math.min(100,speed+25);$('#speed').style.width=speed+'%';$('#raceRunner').style.left=speed+'%';const smoke=$('.race-smoke');if(!matchMedia('(prefers-reduced-motion: reduce)').matches){smoke.getAnimations().forEach(a=>a.cancel());smoke.animate([{opacity:1,transform:'translateX(0) scale(1)'},{opacity:.2,transform:'translateX(-14px) scale(1.3)'}],{duration:300});}set('#speedCopy',`Velocidad: ${speed}% · ${speed===100?'¡Llegaste a la meta!':'¡Sigue acelerando!'}`);if(speed===100){set('#speedStatus','🏁 ¡Llegaste a la meta! Misión desbloqueada.');$('#next1').classList.remove('hidden');}});
-$('#trafficLight').addEventListener('click',()=>{let n=Math.min(3,Number($('#trafficLight').dataset.step||0)+1);$('#trafficLight').dataset.step=n;const colors=['red','yellow','green'];const labels=['🔴 Detente','🟡 Prepárate','🟢 ¡Ya!'];$$('.bulb').forEach(b=>b.classList.remove('on','red','yellow','green'));$$('.bulb')[n-1].classList.add('on',colors[n-1]);set('#lightText',labels[n-1]);if(n===3)$('#next4').classList.remove('hidden');});
+$('#trafficLight').addEventListener('click',()=>{let n=Math.min(3,Number($('#trafficLight').dataset.step||0)+1);$('#trafficLight').dataset.step=n;const colors=['red','yellow','green'];const labels=['🔴 Detente','🟡 Prepárate','🟢 ¡Ya!'];$$('.bulb').forEach(b=>b.classList.remove('on','red','yellow','green'));$$('.bulb')[n-1].classList.add('on',colors[n-1]);set('#lightText',labels[n-1]);if(n===3)$('#next4').classList.remove('locked');});
 const values={date:()=>EVENT.date?new Date(`${EVENT.date}T12:00:00`).toLocaleDateString('es-PE',{day:'numeric',month:'short'}):'Por confirmar',time:()=>EVENT.time||'Por confirmar',venue:()=>EVENT.venue||'Por confirmar',age:()=>`${EVENT.age||'6'} años`};
-$$('.tile').forEach(tile=>tile.addEventListener('click',()=>{tile.classList.add('open');$('.value',tile).textContent=values[tile.dataset.key]();if($$('.tile.open').length===4){set('#tileStatus','✅ Pit stop completo. ¡Todo listo para continuar!');$('#next3').classList.remove('hidden');}}));
+$$('.tile').forEach(tile=>tile.addEventListener('click',()=>{tile.classList.add('open');$('.value',tile).textContent=values[tile.dataset.key]();if($$('.tile.open').length===4){set('#tileStatus','¡Todo listo para continuar!');$('#next3').classList.remove('hidden');}}));
 function updateCountdown(){const d=EVENT.date?new Date(`${EVENT.date}T${EVENT.time||'12:00'}:00-05:00`):null;if(!d||Number.isNaN(d.getTime())){set('#days','--');set('#hours','--');set('#minutes','--');return;}const t=Math.max(0,d-new Date());set('#days',Math.floor(t/86400000));set('#hours',Math.floor(t%86400000/3600000));set('#minutes',Math.floor(t%3600000/60000));}
 
 function openPilotPhoto(){if(!EVENT.photo)return;const img=$('#pilotPhotoLarge');img.src=EVENT.photo;img.alt='Foto ampliada de '+(EVENT.name||'nuestro piloto');set('#pilotPhotoHeading',EVENT.name||'Nuestro piloto');$('#pilotPhotoDialog').showModal();}
