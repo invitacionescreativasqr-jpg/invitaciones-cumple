@@ -82,9 +82,53 @@ h2{font-size:clamp(2.2rem,7vw,3.5rem);line-height:1.02;color:#365d21}.name-kicke
 .pea-projectile{position:absolute;left:16%;top:50%;width:20px;height:20px;background:radial-gradient(circle at 30% 25%,#c4ec8c,#518831);border:2px solid #4f782b;border-radius:50%;opacity:0;z-index:3}.garden-house{position:absolute;top:10px;right:12px;font-size:1.7rem;opacity:.6}.pvz-cast{display:flex;justify-content:center;align-items:flex-end;gap:10px;height:190px;margin:12px 0 20px}.pvz-cast img{width:42%;max-width:190px;height:175px;object-fit:contain}.pvz-cast img,.pvz-zombie{mix-blend-mode:multiply}.photo-viewer{background:#fff8df;color:#365d21;border:3px solid #78502c}.photo-viewer::backdrop{background:#142510d9}
 .editor-head h1{font-family:"Lilita One",sans-serif;color:#3d6526}.editor-head p,.public-settings p,.privacy-note,.photo-help,.preview-detail,.manager-status{color:#62704d}.form-card,.preview-card,.public-settings,.photo-controls{background:#f3efd9;border-color:#b9bd91}.field label{color:#52623b}.field input,.field textarea,select{background:#fffdf1;color:#354526;border-color:#aebc8e}.preview-card .flag,.preview-age{color:#7d6329}.preview-card{top:16px}.small-btn{border:1px solid #aebc8e}.small-btn:hover{background:#e4ebcc}.manager-top{gap:10px}.manager-top .select-wrap{min-width:220px}.manager-top button:disabled{opacity:.45}#deleteInvite{color:#9c4430;border-color:#ca9784}#exportPublicUrl{color:#3c6029!important;background:#fffdf0!important;border-color:#b1bd91!important}
 @media(max-width:520px){.car-stage{height:210px;padding:12px;gap:0}.pea-hero{height:165px!important}.zombie-hero{height:175px}.view{padding:28px 18px 32px}.garden-board{padding:16px 8px;min-height:178px}.garden-pea{width:70px;height:100px}.garden-zombie{width:105px;height:120px}.sun-collect{width:62px;height:62px;font-size:2.1rem}.pvz-cast img{height:145px}.pvz-cast{height:160px}.tile .value{font-size:1.25rem}}
+
+/* Personajes PvZ: conservar GIF animado y retirar visualmente su fondo claro. */
+img.pea-hero,img.zombie-hero,img.pvz-pea,img.pvz-zombie,#missionRacecar,#pilotAvatar>img:not(.pilot-photo){filter:url(#pvz-cutout)!important;mix-blend-mode:normal!important;animation:none!important}
+img.pea-hero,img.pvz-pea,#missionRacecar,#pilotAvatar>img:not(.pilot-photo){filter:url(#pvz-plant-cutout)!important}
+.car-stage{height:245px;gap:36px;align-items:flex-end;padding:18px 24px}
+img.pea-hero{width:112px!important;height:120px!important;max-height:none!important;object-fit:contain;flex:none}
+img.zombie-hero{width:150px!important;height:205px!important;object-fit:cover;object-position:center;flex:none}
+#missionRacecar,.garden-board img.garden-pea{display:block;width:80px!important;height:94px!important;max-width:none;object-fit:contain;transform:none!important;flex:none}
+.garden-board{height:215px;min-height:215px;align-items:flex-end;padding:18px 24px}
+.garden-board img.garden-zombie{width:120px!important;height:165px!important;object-fit:cover;object-position:center;flex:none}
+.pvz-cast{height:220px;gap:32px;align-items:flex-end}
+.pvz-cast img.pvz-pea{width:110px!important;max-width:none;height:120px!important;object-fit:contain}
+.pvz-cast img.pvz-zombie{width:150px!important;max-width:none;height:200px!important;object-fit:cover;object-position:center}
+.solar-garden{position:relative;height:240px;min-height:240px;display:block}
+.solar-garden #missionRacecar{position:absolute;left:26px;bottom:20px}
+.solar-garden .sun-collect{position:absolute;right:28px;bottom:24px;width:98px;height:98px;font-size:3.8rem;display:grid;place-items:center;line-height:1;padding:0}
+#sunCount.solar-counter{position:absolute;top:16px;left:50%;transform:translateX(-50%);z-index:3;white-space:nowrap;background:#fff8d9;color:#35551c;border:2px solid #7f9b45;border-radius:12px;padding:9px 16px;font-size:1.15rem;font-weight:900;letter-spacing:.02em;box-shadow:0 3px 0 #6b873644}
+@media(max-width:520px){
+ .car-stage{height:230px;gap:15px;padding:16px 14px}
+ img.pea-hero{width:94px!important;height:105px!important}
+ img.zombie-hero{width:132px!important;height:190px!important}
+ .garden-board{padding:16px 16px}
+ .garden-board img.garden-zombie{width:106px!important;height:157px!important}
+ .pvz-cast{height:200px;gap:15px}
+ .pvz-cast img.pvz-pea{width:94px!important;height:105px!important}
+ .pvz-cast img.pvz-zombie{width:132px!important;height:185px!important}
+ .solar-garden{height:235px;min-height:235px}
+ .solar-garden .sun-collect{right:20px;bottom:24px;width:92px;height:92px;font-size:3.5rem}
+ .solar-garden #missionRacecar{left:20px}
+ #sunCount.solar-counter{font-size:1.05rem;max-width:calc(100% - 24px);padding:8px 12px}
+}
 </style>
 <meta name="invitation-event-date" content="2030-12-15"></head>
-<body>
+<body><svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" aria-hidden="true" style="position:absolute;pointer-events:none">
+<defs><filter id="pvz-cutout" x="-5%" y="-5%" width="110%" height="110%" color-interpolation-filters="sRGB">
+<feColorMatrix in="SourceGraphic" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  -.3333 -.3333 -.3333 0 1" result="tone"/>
+<feComponentTransfer in="tone" result="key"><feFuncA type="discrete" tableValues="0 0 1 1 1 1 1 1"/></feComponentTransfer>
+<feMorphology in="key" operator="dilate" radius="4" result="expanded"/>
+<feMorphology in="expanded" operator="erode" radius="4" result="silhouette"/>
+<feComposite in="silhouette" in2="SourceAlpha" operator="in" x="0%" y="0%" width="100%" height="62%" result="faceMask"/>
+<feComposite in="key" in2="faceMask" operator="over" result="bodyMask"/>
+<feComposite in="SourceGraphic" in2="bodyMask" operator="in"/>
+</filter><filter id="pvz-plant-cutout" x="-5%" y="-5%" width="110%" height="110%" color-interpolation-filters="sRGB">
+<feColorMatrix in="SourceGraphic" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  -.3333 -.3333 -.3333 0 1" result="plantTone"/>
+<feComponentTransfer in="plantTone" result="plantKey"><feFuncA type="discrete" tableValues="0 0 1 1 1 1 1 1"/></feComponentTransfer>
+<feComposite in="SourceGraphic" in2="plantKey" operator="in"/>
+</filter></defs></svg>
 <main id="noInvite" class="page">
   <div class="topline">Invitación de cumpleaños</div>
   <section class="shell"><div class="view cover">
@@ -113,7 +157,7 @@ h2{font-size:clamp(2.2rem,7vw,3.5rem);line-height:1.02;color:#365d21}.name-kicke
 
       <section id="mission1" class="view hidden">
 <div class="mission-label">Misión 1 · Energía solar</div><h2>¡Reúne soles para la fiesta!</h2><p class="sub">Toca el sol cuatro veces. Con 100 soles, el lanzaguisantes estará listo para proteger el cumpleaños.</p>
-<div class="garden-board"><img id="missionRacecar" class="garden-pea pvz-pea" alt="Lanzaguisantes preparado" width="492" height="498"><button id="collectSun" class="sun-collect" aria-label="Recoger 25 soles">☀️</button><span class="seed-badge" id="sunCount">0 / 100<br>SOLES</span></div>
+<div class="garden-board solar-garden"><img id="missionRacecar" class="garden-pea pvz-pea" alt="Lanzaguisantes preparado" width="492" height="498"><button id="collectSun" class="sun-collect" aria-label="Recoger 25 soles">☀️</button><span class="solar-counter" id="sunCount" aria-live="polite">0 / 100 SOLES</span></div>
 <div class="speed-wrap"><div id="speed" class="speed"></div></div><p id="speedCopy" class="speed-copy" role="status">Soles: 0 / 100</p><p id="speedStatus" class="status" role="status"></p>
 <div class="button-row"><button class="quiet back">← Volver</button><button class="secondary next hidden" id="next1">Siguiente misión →</button></div></section>
 
