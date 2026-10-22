@@ -14,6 +14,13 @@ def prepare(root, today=None):
     manifest=json.loads((root/'invitaciones-publicadas.json').read_text(encoding='utf-8'))
     if manifest.get('version')!=1 or not isinstance(manifest.get('invitations'),list):
         raise ValueError('Registro de invitaciones inválido.')
+    # Exportaciones autónomas: su fecha está marcada en el HTML, sin editar el registro.
+    known={item.get('file') for item in manifest['invitations']}
+    for exported in root.glob('cars-*.html'):
+        if exported.name in known or exported.is_symlink() or not exported.is_file():continue
+        header=exported.read_text(encoding='utf-8').split('</head>',1)[0]
+        marker=re.search(r'<meta name="invitation-event-date" content="(\d{4}-\d{2}-\d{2})">',header)
+        if marker:manifest['invitations'].append({'file':exported.name,'event_date':marker.group(1)})
     records=[]; seen=set()
     # Validar todos los registros antes de retirar cualquier archivo.
     for item in manifest['invitations']:
