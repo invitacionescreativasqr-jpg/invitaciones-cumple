@@ -114,7 +114,19 @@ img.zombie-hero{width:150px!important;height:205px!important;object-fit:cover;ob
  #sunCount.solar-counter{font-size:1.05rem;max-width:calc(100% - 24px);padding:8px 12px}
 }
 </style>
-<meta name="invitation-event-date" content="2026-10-22">
+<style id="sound-expandable-style">
+#pvzMusicControls.pvz-music{left:max(12px,env(safe-area-inset-left));right:auto;top:max(12px,env(safe-area-inset-top));width:44px;height:44px;box-sizing:border-box;padding:0;gap:0;border-radius:28px;transition:width .22s ease,padding .22s ease}
+#pvzMusicControls.pvz-music button{box-sizing:border-box;width:42px;height:42px;flex:0 0 42px}
+#pvzMusicControls.pvz-music input{width:120px;max-width:0;opacity:0;visibility:hidden;pointer-events:none;margin:0;transition:max-width .22s ease,opacity .18s ease,margin .22s ease}
+#pvzMusicControls.pvz-music.expanded{width:194px;padding-right:10px}
+#pvzMusicControls.pvz-music.expanded input{width:120px;max-width:120px;opacity:1;visibility:visible;pointer-events:auto;margin-left:10px}
+@media(prefers-reduced-motion:reduce){#pvzMusicControls.pvz-music,#pvzMusicControls.pvz-music input{transition:none}}
+
+#pvzMusicControls.pvz-music{border:0;background:#222;color:#fff;box-shadow:0 3px 14px #0003}
+#pvzMusicControls.pvz-music button{width:44px;height:44px;flex:0 0 44px;min-height:44px;border:0;background:transparent;padding:10px;box-shadow:none}
+#pvzMusicControls.pvz-music button:hover{background:#363636}
+#pvzMusicControls.pvz-music button:focus-visible{outline:2px solid #61b2ff;outline-offset:2px}
+</style><style>.countdown{grid-template-columns:repeat(auto-fit,minmax(90px,1fr))}.countdown .count[hidden]{display:none}</style><meta name="invitation-event-date" content="2026-10-22">
 <meta name="invitation-expiry-date" content="never">
 </head>
 <body><svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" aria-hidden="true" style="position:absolute;pointer-events:none">
@@ -196,7 +208,7 @@ img.zombie-hero{width:150px!important;height:205px!important;object-fit:cover;ob
 
       <section id="mission6" class="view hidden">
         <div class="mission-label">Misión 6 · Cuenta regresiva</div><h2>¡Se acerca una gran fiesta!</h2><p class="sub">¡Empieza la cuenta regresiva para celebrar juntos!</p>
-        <div class="countdown" aria-label="Cuenta regresiva"><div class="count"><b id="days">--</b><span>Días</span></div><div class="count"><b id="hours">--</b><span>Horas</span></div><div class="count"><b id="minutes">--</b><span>Minutos</span></div></div>
+        <div class="countdown" aria-label="Cuenta regresiva"><div class="count" hidden><b id="years">--</b><span>Años</span></div><div class="count" hidden><b id="months">--</b><span>Meses</span></div><div class="count"><b id="days">--</b><span>Días</span></div><div class="count"><b id="hours">--</b><span>Horas</span></div><div class="count"><b id="minutes">--</b><span>Minutos</span></div></div>
         <div class="ticket"><div class="ticket-head">🌻 PASE AL JARDÍN</div><p id="ticketText">Fecha y hora por confirmar.</p><p id="extraText"></p></div>
         <div class="button-row"><button class="quiet back">← Volver</button><button class="secondary next">Ir a celebrar →</button></div>
       </section>
@@ -362,7 +374,32 @@ $('#collectSun').addEventListener('click',()=>{suns=Math.min(100,suns+25);$('#sp
 $('#shootPea').addEventListener('click',()=>{hits=Math.min(4,hits+1);const shot=$('#peaShot');shot.getAnimations().forEach(a=>a.cancel());if(!matchMedia('(prefers-reduced-motion: reduce)').matches)shot.animate([{left:'16%',opacity:1},{left:'77%',opacity:1},{left:'80%',opacity:0}],{duration:350});$('#gardenZombie').style.transform='translateX('+(hits*7)+'px)';set('#defenseStatus','Defensa: '+hits+' / 4');if(hits===4){$('#gardenZombie').style.opacity='.5';$('#shootPea').disabled=true;set('#defenseStatus','¡Jardín protegido! Ahora sí, a celebrar.');$('#next4').classList.remove('locked');}});
 const values={date:()=>EVENT.date?new Date(`${EVENT.date}T12:00:00`).toLocaleDateString('es-PE',{day:'numeric',month:'short'}):'Por confirmar',time:()=>EVENT.time||'Por confirmar',venue:()=>EVENT.venue||'Por confirmar',age:()=>`${EVENT.age||'6'} años`};
 $$('.tile').forEach(tile=>tile.addEventListener('click',()=>{tile.classList.add('open');$('.value',tile).textContent=values[tile.dataset.key]();if($$('.tile.open').length===4){set('#tileStatus','¡Todo listo para continuar!');$('#next3').classList.remove('hidden');}}));
-function updateCountdown(){const d=EVENT.date?new Date(`${EVENT.date}T${EVENT.time||'12:00'}:00-05:00`):null;if(!d||Number.isNaN(d.getTime())){set('#days','--');set('#hours','--');set('#minutes','--');return;}const t=Math.max(0,d-new Date());set('#days',Math.floor(t/86400000));set('#hours',Math.floor(t%86400000/3600000));set('#minutes',Math.floor(t%3600000/60000));}
+function calendarCountdown(target,now=new Date()){
+ const end=new Date(target),begin=new Date(now);
+ if(!Number.isFinite(end.getTime())||!Number.isFinite(begin.getTime()))return null;
+ if(end<=begin)return {years:0,months:0,days:0,hours:0,minutes:0,seconds:0};
+ // Perú: UTC-5 sin cambio estacional. Comparar meses civiles, no bloques de 30 días.
+ const local=new Date(begin.getTime()-5*3600000),finish=new Date(end.getTime()-5*3600000);
+ function addMonths(count){
+  const first=new Date(Date.UTC(local.getUTCFullYear(),local.getUTCMonth()+count,1));
+  const last=new Date(Date.UTC(first.getUTCFullYear(),first.getUTCMonth()+1,0)).getUTCDate();
+  return new Date(Date.UTC(first.getUTCFullYear(),first.getUTCMonth(),Math.min(local.getUTCDate(),last),local.getUTCHours(),local.getUTCMinutes(),local.getUTCSeconds(),local.getUTCMilliseconds())+5*3600000);
+ }
+ let months=(finish.getUTCFullYear()-local.getUTCFullYear())*12+finish.getUTCMonth()-local.getUTCMonth();
+ if(addMonths(months)>end)months--;
+ const remainder=Math.max(0,end-addMonths(months));
+ return {years:Math.floor(months/12),months:months%12,days:Math.floor(remainder/86400000),hours:Math.floor(remainder/3600000)%24,minutes:Math.floor(remainder/60000)%60,seconds:Math.floor(remainder/1000)%60};
+}
+
+function updateCountdown(){
+ const target=EVENT.date?new Date(`${EVENT.date}T${EVENT.time||'12:00'}:00-05:00`):new Date(NaN);
+ const remaining=calendarCountdown(target);
+ for(const key of ['years','months','days','hours','minutes']){
+  const node=document.getElementById(key);if(!node)continue;
+  node.textContent=remaining?remaining[key]:'--';
+  if(key==='years'||key==='months')node.parentElement.hidden=!remaining||remaining[key]===0;
+ }
+}
 
 function openPilotPhoto(){if(!EVENT.photo)return;const img=$('#pilotPhotoLarge');img.src=EVENT.photo;img.alt='Foto ampliada de '+(EVENT.name||'nuestro protagonista');set('#pilotPhotoHeading',EVENT.name||'Nuestro protagonista');$('#pilotPhotoDialog').showModal();}
 $('#closePilotPhoto').addEventListener('click',()=>$('#pilotPhotoDialog').close());
@@ -404,7 +441,27 @@ const audio=document.getElementById('pvzMusic'),controls=document.getElementById
 audio.volume=.55;
 function sync(){const silent=audio.muted||audio.volume===0;mute.setAttribute('aria-pressed',String(silent));mute.setAttribute('aria-label',silent?'Activar música':'Silenciar música');mute.title=silent?'Activar música':'Silenciar música';document.getElementById('pvzSoundWaves').style.display=silent?'none':'';document.getElementById('pvzSoundOff').style.display=silent?'':'none';volume.value=String(Math.round((audio.muted?0:audio.volume)*100));}
 function begin(){controls.hidden=false;if(audio.paused)audio.play().catch(()=>{});}
-mute.addEventListener('click',()=>{if(audio.muted||audio.volume===0){audio.muted=false;if(audio.volume===0)audio.volume=.55;audio.play().catch(()=>{});}else audio.muted=true;sync();});
+let collapseMusicTimer,touchMusic=false;
+mute.setAttribute('aria-expanded','false');volume.tabIndex=-1;
+function expandMusic(){clearTimeout(collapseMusicTimer);controls.classList.add('expanded');mute.setAttribute('aria-expanded','true');volume.tabIndex=0;}
+function collapseMusic(){clearTimeout(collapseMusicTimer);controls.classList.remove('expanded');mute.setAttribute('aria-expanded','false');volume.tabIndex=-1;}
+function delayMusicCollapse(){clearTimeout(collapseMusicTimer);collapseMusicTimer=setTimeout(collapseMusic,4000);}
+controls.addEventListener('pointerenter',ev=>{if(ev.pointerType==='mouse')expandMusic();});
+controls.addEventListener('pointerleave',ev=>{if(ev.pointerType==='mouse'&&!controls.querySelector(':focus-visible'))collapseMusic();});
+controls.addEventListener('focusin',()=>{if(controls.querySelector(':focus-visible'))expandMusic();});
+controls.addEventListener('focusout',ev=>{if(!controls.contains(ev.relatedTarget))collapseMusic();});
+controls.addEventListener('pointerdown',ev=>{touchMusic=ev.pointerType==='touch'||ev.pointerType==='pen';if(touchMusic&&ev.target!==mute&&!mute.contains(ev.target))expandMusic();});
+controls.addEventListener('pointerup',()=>{if(touchMusic)delayMusicCollapse();});
+document.addEventListener('pointerdown',ev=>{if(!controls.contains(ev.target))collapseMusic();});
+controls.addEventListener('keydown',ev=>{if(ev.key==='Escape')collapseMusic();});
+mute.addEventListener('click',()=>{
+ const firstTouch=touchMusic&&!controls.classList.contains('expanded');expandMusic();if(touchMusic)delayMusicCollapse();
+ if(firstTouch&&!audio.paused)return;
+ if(audio.paused){audio.muted=false;if(audio.volume===0)audio.volume=.55;begin();}
+ else if(audio.muted||audio.volume===0){audio.muted=false;if(audio.volume===0)audio.volume=.55;}
+ else audio.muted=true;
+ sync();
+});
 volume.addEventListener('input',()=>{audio.volume=Number(volume.value)/100;audio.muted=audio.volume===0;sync();});
 document.getElementById('startBtn').addEventListener('click',begin);
 sync();
