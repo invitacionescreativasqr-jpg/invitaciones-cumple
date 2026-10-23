@@ -1,4 +1,4 @@
-"""Retira únicamente invitaciones registradas tras 30 días (fecha de Perú)."""
+"""Retira invitaciones según su vigencia; HTML antiguos: 30 días (Perú)."""
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 import json
@@ -7,6 +7,16 @@ import shutil
 
 PROTECTED = {'index.html', 'demo.html', '404.html'}
 BASE_FILES = ['index.html', 'invite-codec.js', 'demo.html', '.nojekyll']
+
+def read_expiry(event_date, header=''):
+    marker=re.search(r'<meta name="invitation-expiry-date" content="([^"]*)">',header)
+    if not marker:
+        if 'name="invitation-expiry-date"' in header:raise ValueError('Marcador de vigencia inválido.')
+        return date.fromisoformat(event_date)+timedelta(days=30)
+    if marker.group(1)=='never':return None
+    expiry=date.fromisoformat(marker.group(1))
+    if expiry<date.fromisoformat(event_date):raise ValueError('La retirada no puede ser anterior al evento.')
+    return expiry
 
 def prepare(root, today=None):
     root=Path(root).resolve()
@@ -31,11 +41,17 @@ def prepare(root, today=None):
         target=root/name
         if target.is_symlink() or target.resolve().parent!=root:
             raise ValueError('La invitación debe ser un archivo normal dentro del proyecto.')
-        expires=date.fromisoformat(item['event_date'])+timedelta(days=30)
+        event_date=item['event_date']
+        header=''
+        if target.is_file():
+            header=target.read_text(encoding='utf-8').split('</head>',1)[0]
+            event_marker=re.search(r'<meta name="invitation-event-date" content="(\d{4}-\d{2}-\d{2})">',header)
+            if event_marker:event_date=event_marker.group(1)
+        expires=read_expiry(event_date,header)
         records.append((name,target,expires))
     retired=[]
     for name,target,expires in records:
-        if today>=expires and target.exists():
+        if expires is not None and today>=expires and target.exists():
             if not target.is_file():raise ValueError('Se esperaba un archivo: '+name)
             target.unlink();retired.append(name)
     # Solo estos archivos llegan al artefacto público, nunca scripts ni metadatos.
@@ -51,7 +67,7 @@ def prepare(root, today=None):
         if not source.is_file() or source.is_symlink():raise ValueError('Falta archivo compartido: '+name)
         shutil.copyfile(source,output/name)
     for name,target,expires in records:
-        if today<expires and target.is_file():shutil.copyfile(target,output/name)
+        if (expires is None or today<expires) and target.is_file():shutil.copyfile(target,output/name)
     print('Fecha de Perú:',today.isoformat())
     print('Retiradas:',', '.join(retired) if retired else 'ninguna')
     return retired
