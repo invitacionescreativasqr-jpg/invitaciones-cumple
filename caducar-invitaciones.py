@@ -26,7 +26,7 @@ def prepare(root, today=None):
         raise ValueError('Registro de invitaciones inválido.')
     # Exportaciones autónomas: su fecha está marcada en el HTML, sin editar el registro.
     known={item.get('file') for item in manifest['invitations']}
-    for exported in list(root.glob('cars-*.html'))+list(root.glob('pvz-*.html'))+list(root.glob('dbz-*.html'))+list(root.glob('reyleon-*.html'))+list(root.glob('frozen-*.html')):
+    for exported in list(root.glob('cars-*.html'))+list(root.glob('pvz-*.html'))+list(root.glob('dbz-*.html'))+list(root.glob('timonpumba-*.html'))+list(root.glob('reyleon-*.html'))+list(root.glob('frozen-*.html')):
         if exported.name in known or exported.is_symlink() or not exported.is_file():continue
         header=exported.read_text(encoding='utf-8').split('</head>',1)[0]
         marker=re.search(r'<meta name="invitation-event-date" content="(\d{4}-\d{2}-\d{2})">',header)
